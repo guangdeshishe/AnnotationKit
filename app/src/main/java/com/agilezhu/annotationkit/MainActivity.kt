@@ -9,13 +9,16 @@ import com.agilezhu.library.AnnotationKit
 
 class MainActivity : AppCompatActivity() {
     @BindView(R.id.main_title_view)
-    var mTitleView: TextView? = null
+    lateinit var mTitleView: TextView
+
+    @BindView(R.id.main_title_view)
+    lateinit var mViewId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        AnnotationKit.getInstance().bind(this)
+        AnnotationKit.bind(this)
 
         if (mTitleView != null) {
             Toast.makeText(this, "BindView成功", Toast.LENGTH_SHORT).show()

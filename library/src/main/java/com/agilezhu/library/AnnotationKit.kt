@@ -1,6 +1,8 @@
 package com.agilezhu.library
 
 import android.app.Activity
+import com.agilezhu.annotation.Constant.GENERATE_CLASS_FULL_NAME_HEAD
+import java.lang.reflect.Constructor
 
 /**
  * 用于绑定组件
@@ -11,20 +13,30 @@ import android.app.Activity
  */
 class AnnotationKit {
     companion object {
-        fun getInstance(): AnnotationKit {
-            return InstanceHolder.INSTANCE
-        }
 
-        private class InstanceHolder {
-            companion object {
-                val INSTANCE = AnnotationKit()
+        private val cacheConstructor = HashMap<Class<*>, Constructor<*>>()
+
+        fun bind(activity: Activity) {
+            var constructor = cacheConstructor[activity.javaClass]
+            if (constructor == null) {
+                synchronized(cacheConstructor) {
+                    if (constructor == null) {
+                        try {
+                            val fullClassName =
+                                GENERATE_CLASS_FULL_NAME_HEAD + activity::class.java.simpleName
+
+                            val clazz = Class.forName(fullClassName)
+                            constructor = clazz.getConstructor(activity.javaClass)
+                        } catch (e: Throwable) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
             }
+            constructor?.newInstance(activity)
+
+
         }
     }
-
-    fun bind(activity: Activity) {
-
-    }
-
 
 }
