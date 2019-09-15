@@ -11,9 +11,6 @@ class MainActivity : AppCompatActivity() {
     @BindView(R.id.main_title_view)
     lateinit var mTitleView: TextView
 
-    @BindView(R.id.main_title_view)
-    lateinit var mViewId: String
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)

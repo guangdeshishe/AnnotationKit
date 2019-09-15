@@ -13,26 +13,33 @@ import java.lang.reflect.Constructor
  */
 class AnnotationKit {
     companion object {
-
-        private val cacheConstructor = HashMap<Class<*>, Constructor<*>>()
+        /**
+         * 缓存构造方法
+         */
+        private val mCacheConstructor = HashMap<Class<*>, Constructor<*>?>()
 
         fun bind(activity: Activity) {
-            var constructor = cacheConstructor[activity.javaClass]
+            //从缓存中读取构造方法
+            var constructor = mCacheConstructor[activity.javaClass]
             if (constructor == null) {
-                synchronized(cacheConstructor) {
+                synchronized(mCacheConstructor) {
                     if (constructor == null) {
                         try {
                             val fullClassName =
                                 GENERATE_CLASS_FULL_NAME_HEAD + activity::class.java.simpleName
-
+                            //通过反射获取生成的类
                             val clazz = Class.forName(fullClassName)
+                            //获取构造方法
                             constructor = clazz.getConstructor(activity.javaClass)
+                            //存入缓存
+                            mCacheConstructor[activity.javaClass] = constructor
                         } catch (e: Throwable) {
                             e.printStackTrace()
                         }
                     }
                 }
             }
+            //反射调用构造方法
             constructor?.newInstance(activity)
 
 

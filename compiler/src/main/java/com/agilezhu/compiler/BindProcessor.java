@@ -36,9 +36,9 @@ import static com.agilezhu.annotation.Constant.GENERATE_PACKAGE;
  */
 @AutoService(Processor.class)
 public class BindProcessor extends AbstractProcessor {
-    private Filer mFiler; //文件相关的辅助类
-    private Elements mElementUtils; //元素相关的辅助类  许多元素
-    private Messager mMessager;//日志相关的辅助类
+    private Filer mFiler; //文件相关工具类：用于保存生成的java类文件
+    private Elements mElementUtils; //元素相关工具类：用于获取java类文件
+    private Messager mMessager;//用于打印日志
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnvironment) {
@@ -50,6 +50,7 @@ public class BindProcessor extends AbstractProcessor {
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
+        //返回该注解处理器能够处理哪些注解
         Set<String> types = new LinkedHashSet<>();
         types.add(BindView.class.getName());
         return types;
@@ -57,12 +58,13 @@ public class BindProcessor extends AbstractProcessor {
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
+        //返回当前注解处理器支持的java版本号
         return SourceVersion.latest();
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-
+        //获取所有的源码文件
         Set<? extends Element> elements = roundEnvironment.getRootElements();
         for (Element element : elements) {
             if (!(element instanceof TypeElement)) {//判断是否class类
@@ -70,7 +72,9 @@ public class BindProcessor extends AbstractProcessor {
             }
             //转换成class类型
             TypeElement typeElement = (TypeElement) element;
-            String classSimpleName = element.getSimpleName().toString();//类名
+            //当前文件的类名
+            String classSimpleName = element.getSimpleName().toString();
+            //将要生成的java完整类名：BindProxy$+当前类名
             String targetClassName = GENERATE_CLASS_NAME_HEAD + element.getSimpleName();
 
             //创建方法(构造方法)
@@ -87,6 +91,7 @@ public class BindProcessor extends AbstractProcessor {
                 if (bindViewAnnotation != null) {
                     annotationMembers.add(member);
                     String paramName = classSimpleName.toLowerCase();
+                    //构造方法中添加初始化代码：findViewById
                     bindMethodBuilder.addStatement(
                             String.format(
                                     paramName + ".%s = (%s) " + paramName + ".findViewById(%s)"
@@ -95,6 +100,7 @@ public class BindProcessor extends AbstractProcessor {
                                     , bindViewAnnotation.value()));
                 }
             }
+            //如果该类中没有我们自定义的注解，则不生成对应java处理类
             if (annotationMembers.isEmpty()) {
                 continue;
             }
@@ -109,6 +115,7 @@ public class BindProcessor extends AbstractProcessor {
                     .builder(GENERATE_PACKAGE, bindProxyClass)
                     .build();
             try {
+                //保存java类文件
                 bindProxyFile.writeTo(mFiler);
             } catch (Throwable e) {
                 e.printStackTrace();
